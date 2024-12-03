@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Calendar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            background-color: #052F5F;
+            color: #D5C67A;
+        }
+        .calendar {
+            width: 70%;
+            margin: 20px;
+        }
+        .todo-list {
+            width: 30%;
+            margin: 20px;
+        }
+        
+        .calendar-header {
+            text-align: center;
+        }
+        .calendar-header select {
+            font-size: 16px;
+            background-color: #005377;
+            color: #D5C67A;
+        }
+        .calendar-body-days {
+            margin: 15px 0;
+        }
+        .calendar-body, .calendar-body-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+        .calendar-body .day {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #06A77D;
+            width: 100px;
+            height: 90px;
+            overflow-y: auto;
+            color: #052F5F;
+        }
+        .task {
+            background-color: #F1A208;
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+            color: #052F5F;
+        }
+        .todo-list h2 {
+            text-align: center;
+        }
+        .todo-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .todo-list li {
+            background-color: #06A77D;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #052F5F;
+        }
+        .todo-list button {
+            margin-left: 10px;
+            background-color: #005377;
+            color: #D5C67A;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #add-task {
+            background-color: #06A77D;
+            color: #052F5F;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #task-input {
+            color: #D5C67A;
+            border: none;
+            border-bottom: 2px solid black;
+            border-radius: 5px;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            padding: 10px 20px;
+            margin-bottom: 10px;
+            background-color: transparent;
+        }
+        select {
+            border: none;
+            padding: 10px;
+            font-size: 32px;
+            cursor: pointer;
+            background-color: transparent;
+            color: #D5C67A;
+        }
+        select:focus {
+            outline: none;
+            border-color: #007BFF;
+            background-color: transparent;
+        }
+        .complete {
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="calendar">
+        <div class="calendar-header">
+            <select id="month"></select>
+            <select id="year"></select>
+        </div>
+        <div class="calendar-body-days">
+            <div class="day-of-week">Sun</div>
+            <div class="day-of-week">Mon</div>
+            <div class="day-of-week">Tue</div>
+            <div class="day-of-week">Wed</div>
+            <div class="day-of-week">Thu</div>
+            <div class="day-of-week">Fri</div>
+            <div class="day-of-week">Sat</div>
+        </div>
+        <div class="calendar-body" id="calendar-body"></div>
+    </div>
+    <div class="todo-list">
+        <h2>To Do List</h2>
+        <input type="text" id="task-input" placeholder="New task">
+        <button id="add-task">Add Task</button>
+        <ul id="task-list"></ul>
+    </div>
+
+    <script>
+        const monthSelect = document.getElementById('month');
+        const yearSelect = document.getElementById('year');
+        const calendarBody = document.getElementById('calendar-body');
+        const taskInput = document.getElementById('task-input');
+        const addTaskButton = document.getElementById('add-task');
+        const taskList = document.getElementById('task-list');
+
+        const months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth();
+
+        function populateMonths() {
+            months.forEach((month, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = month;
+                if (index === currentMonth) {
+                    option.selected = true;
+                }
+                monthSelect.appendChild(option);
+            });
+        }
+
+        function populateYears() {
+            for (let i = currentYear - 50; i <= currentYear + 50; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                if (i === currentYear) {
+                    option.selected = true;
+                }
+                yearSelect.appendChild(option);
+            }
+        }
+
+        function generateCalendar(month, year) {
+            calendarBody.innerHTML = '';
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                calendarBody.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.classList.add('day');
+                dayCell.innerHTML = `<div>${day}</div><div class="tasks"></div>`;
+                calendarBody.appendChild(dayCell);
+            }
+        }
+
+        monthSelect.addEventListener('change', () => {
+            generateCalendar(parseInt(monthSelect.value), parseInt(yearSelect.value));
+        });
+
+        yearSelect.addEventListener('change', () => {
+            generateCalendar(parseInt(monthSelect.value), parseInt(yearSelect.value));
+        });
+
+        addTaskButton.addEventListener('click', () => {
+            const taskText = taskInput.value.trim();
+            if (taskText) {
+                const li = document.createElement('li');
+                li.textContent = taskText;
+                const timerButton = document.createElement('button');
+                timerButton.textContent = 'Set Timer';
+                timerButton.addEventListener('click', () => {
+                    const time = prompt('Enter time in minutes:');
+                    if (time) {
+                        let totalTime = time * 60 * 100;
+                        const countdown = document.createElement('span');
+                        li.appendChild(countdown);
+                        timerButton.style.display = 'none'; // Hide the button
+                        const interval = setInterval(() => {
+                            totalTime -= 1; // Decrease by 1 seconds
+                            const minutes = Math.floor(totalTime / (60 * 100));
+                            const seconds = Math.floor((totalTime % (60 * 100)) / 100);
+                            countdown.textContent = ` (${minutes} min ${seconds} sec)`;
+                            if (totalTime <= 0) {
+                                clearInterval(interval);
+                                alert(`Time's up for task: ${taskText}`);
+                                countdown.textContent = '';
+                            }
+                        }, 10);
+                    }
+                });
+
+                const dueDateButton = document.createElement('button');
+                dueDateButton.textContent = 'Set Due Date';
+                dueDateButton.addEventListener('click', () => {
+                    const dueDate = prompt('Enter due date (YYYY-MM-DD):');
+                    if (dueDate) {
+                        const [year, month, day] = dueDate.split('-').map(Number);
+                        const dayCell = calendarBody.querySelector(`.day:nth-child(${day + new Date(year, month - 1, 1).getDay()}) .tasks`);
+                        if (dayCell) {
+                            const taskDiv = document.createElement('div');
+                            taskDiv.classList.add('task');
+                            taskDiv.textContent = taskText;
+                            dayCell.appendChild(taskDiv);
+                            dueDateButton.style.display = 'none'; // Hide the button
+
+                            const markCompleteButton = document.createElement('button');
+                            markCompleteButton.textContent = 'Mark Complete';
+                            markCompleteButton.style.backgroundColor = "#F1A208";
+                            markCompleteButton.style.color = "#052F5F";
+                            li.appendChild(markCompleteButton);
+                            markCompleteButton.addEventListener('click', () => {
+                                taskDiv.classList.add('complete');
+                                li.style.display = 'none';
+                            });
+                            
+                           
+                        }
+                    }
+                });
+
+                li.appendChild(timerButton);
+                li.appendChild(dueDateButton);
+                taskList.appendChild(li);
+                taskInput.value = '';
+            }
+        });
+
+        populateMonths();
+        populateYears();
+        generateCalendar(currentMonth, currentYear);
+    </script>
+</body>
+</html>
